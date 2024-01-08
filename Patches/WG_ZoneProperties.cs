@@ -46,7 +46,7 @@ namespace WG_HouseholdCapacityModifier.Patches
 
     class WG_ZoneProperties_Static
     {
-        static HashSet<float> uniqueCalcString = new HashSet<float>();
+        static HashSet<string> uniqueCalcString = new HashSet<string>();
 
         // This is the function I'm actually after
         public static BuildingPropertyData GetBuildingPropertyData(ZoneProperties __instance, BuildingPrefab buildingPrefab, byte level)
@@ -54,45 +54,64 @@ namespace WG_HouseholdCapacityModifier.Patches
             // Buildings don't change every level, so only make it different at 1, 3 and 5.
             // And reduce the increase until I figure out how to get the building height
             float num = 1f;
-            float baseNum = 1f;
+            float baseNum = 1.5f;
+            float levelBooster = 0.25f;
             float residentialProperties = __instance.m_ResidentialProperties;
+            float lotSize = (float)buildingPrefab.lotSize;
+            List<ComponentBase> ogd = new List<ComponentBase>();
+            if (buildingPrefab.GetComponents(ogd)) {
+                /*
+                Game.Prefabs.BuildingPrefab
+                Game.Prefabs.SpawnableBuilding <-
+                Game.Prefabs.ObjectSubObjects
+                Game.Prefabs.ObjectSubAreas
+                Game.Prefabs.ObjectSubNets
+                 */
+                foreach (ComponentBase item in ogd)
+                {
+                    switch (item.GetType())
+                    {
+                        case 
+                        default:
+                            break;
+                    }
+                }
+            }
 
             if (__instance.m_ScaleResidentials)
             {
                 // m_ResidentialProperties appears to signify the type of residential
-                // 1, 1.5, 2, 4, 6
-                if (residentialProperties == 2)
+                // 1 - Row housing
+                // 1.5 - Medium
+                // 2 - Mixed
+                // 4 - Low rent
+                // 6 - Tower
+                switch (residentialProperties)
                 {
-                    // Mixed use should have a small penalty from medium density
-                    residentialProperties = 1.4f;
-                }
-                else if (residentialProperties == 6)
-                {
-                    // Modify residentialProperties to lower if constrained to a small 3 length on any side
-                    if (math.min(buildingPrefab.m_LotWidth, buildingPrefab.m_LotDepth) <= 3)
-                    {
-                        residentialProperties /= 3;
-                    }
-                    // Change formula to 2 + .25
-                    baseNum = 2f;
+                    case 1f:
+                        //if (buildingPrefab.m_LotWidth == 1) 
+                        lotSize = math.min(buildingPrefab.m_LotDepth, 3);
+                        break;
+                    case 2f:
+                        // Mixed use should slightly more as medium density
+                        residentialProperties = 1.6f;
+                        break;
+                    case 6f:
+                        // TODO - Reduce residentialProperties to lower if constrained to a short building
+                        // TODO - Find the Crane or Bounds object
+                        levelBooster = 0.125f;
+                        break;
+                    // No default
                 }
 
-                if (buildingPrefab.m_LotWidth == 1) {
-                    // Row house
-                    // We have 1x2 and 1x3 row house buildings, cap it at 3
-                    num = (1f + 0.5f * Mathf.Floor((level - 1) / 2f)) * math.min(buildingPrefab.m_LotDepth, 3);
-                }
-                else
-                {
-                    num = (baseNum + 0.5f * Mathf.Floor((level - 1) / 2f)) * (float)buildingPrefab.lotSize;
-                }
+                num = (baseNum + levelBooster * Mathf.Floor((level - 1) / 2f)) * lotSize;
 
                 // TODO
-                string value = $"GetBuildingPropertyData {buildingPrefab.m_LotWidth}x{buildingPrefab.m_LotDepth} -> {__instance.m_ResidentialProperties} x {num}";
-                if (!uniqueCalcString.Contains(__instance.m_ResidentialProperties))
+                string value = $"GetBuildingPropertyData {buildingPrefab.m_LotWidth}x{buildingPrefab.m_LotDepth} -> {__instance.m_ResidentialProperties} * {num}";
+                if (!uniqueCalcString.Contains(value))
                 {
-                    System.Console.WriteLine(__instance.m_ResidentialProperties);
-                    uniqueCalcString.Add(__instance.m_ResidentialProperties);
+                    //System.Console.WriteLine(value);
+                    //uniqueCalcString.Add(value);
                 }
             }
 
