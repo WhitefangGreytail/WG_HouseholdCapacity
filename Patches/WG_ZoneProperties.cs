@@ -55,7 +55,7 @@ namespace WG_HouseholdCapacityModifier.Patches
             // And reduce the increase until I figure out how to get the building height
             float num = 1f;
             float baseNum = 1.5f;
-            float levelBooster = 0.25f;
+            float levelBooster = 0.125f;
             float residentialProperties = __instance.m_ResidentialProperties;
             float lotSize = (float)buildingPrefab.lotSize;
             List<ComponentBase> ogd = new List<ComponentBase>();
@@ -71,7 +71,7 @@ namespace WG_HouseholdCapacityModifier.Patches
                 {
                     switch (item.GetType())
                     {
-                        case 
+                        //case 
                         default:
                             break;
                     }
@@ -89,22 +89,24 @@ namespace WG_HouseholdCapacityModifier.Patches
                 switch (residentialProperties)
                 {
                     case 1f:
-                        //if (buildingPrefab.m_LotWidth == 1) 
+                        // Cap to 3 tiles since it appears the row houses only get built up 3 deep
                         lotSize = math.min(buildingPrefab.m_LotDepth, 3);
                         break;
+                    case 1.5f:
                     case 2f:
-                        // Mixed use should slightly more as medium density
-                        residentialProperties = 1.6f;
+                        // Mixed use should be same as medium density since the buildings are a bit bigger (and wall to wall most cases)
+                        // Mixed use can survive better with the commercial also paying rent
+                        residentialProperties = 1f;
                         break;
                     case 6f:
                         // TODO - Reduce residentialProperties to lower if constrained to a short building
                         // TODO - Find the Crane or Bounds object
-                        levelBooster = 0.125f;
+                        // TODO - Maybe nix the multipler for signature buildings
                         break;
                     // No default
                 }
 
-                num = (baseNum + levelBooster * Mathf.Floor((level - 1) / 2f)) * lotSize;
+                num = (baseNum + levelBooster * (level - 1)) * lotSize;
 
                 // TODO
                 string value = $"GetBuildingPropertyData {buildingPrefab.m_LotWidth}x{buildingPrefab.m_LotDepth} -> {__instance.m_ResidentialProperties} * {num}";

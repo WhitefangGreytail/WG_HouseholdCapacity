@@ -1,9 +1,9 @@
 # Cities Skylines 2 : Worker Capacity Booster
-Changes the calculation for commercial and industrial employment.
-Worker count is higher at lower levels but leaves a level 5 building to be the same.
-Offices however, also get a muliplier  boost for taller buildings by a power of 1.4
-The larger difference is for office buildings which have much improved capacities vs vanilla.
-Be prepared to funnel traffic towards smaller office regions.
+Changes the calculation for non low density residential households
+Allocation of housing is now front loaded, so that level 1 has the most households.
+
+The values for high density are based off building density values stated in this video about Hong Kong density
+https://www.youtube.com/watch?v=D86gwTfx4H8
 
 
 ## Instructions
@@ -32,6 +32,10 @@ It's usually easiest to contact me at the [**Cities 2 modding Discord**](https:/
 WhitefangGreytail/WG_HouseholdCapacityModifier).
 
 Be wary of mods without publicly available source code, it's too easy to download executables from somewhere and find it has been changed. Even then, "Trust, but verify", would be the motto I would say here.
+
+### Credits
+    Thanks to captain_on_coit for the Git repo template
+
 
 ### Why even think about trusting me then?
 Author of Realistic Population in Cities Skylines before handing it over to algernon-A. The repos in my GitHub still have them available for viewing.
