@@ -53,10 +53,10 @@ namespace WG_HouseholdCapacityModifier.Patches
         {
             // Buildings don't change every level, so only make it different at 1, 3 and 5.
             // And reduce the increase until I figure out how to get the building height
-            float num = 1f;
-            float baseNum = 1.5f;
+            float baseNum = 1.375f;
             float levelBooster = 0.125f;
             float residentialProperties = __instance.m_ResidentialProperties;
+            float num = residentialProperties; // Was 1f, combine the multiplication below
             float lotSize = (float)buildingPrefab.lotSize;
             List<ComponentBase> ogd = new List<ComponentBase>();
             if (buildingPrefab.GetComponents(ogd)) {
@@ -98,28 +98,41 @@ namespace WG_HouseholdCapacityModifier.Patches
                         // Mixed use can survive better with the commercial also paying rent
                         residentialProperties = 1f;
                         break;
-                    case 6f:
-                        // TODO - Reduce residentialProperties to lower if constrained to a short building
-                        // TODO - Find the Crane or Bounds object
-                        // TODO - Maybe nix the multipler for signature buildings
+                    case 4f:
+                        baseNum = 1.5f;
+                        levelBooster = 0.1f;
+                        residentialProperties = 3f;
                         break;
-                    // No default
+                    case 6f:
+                        // TODO - Find the Crane or Bounds object
+                        // Reduce residentialProperties to lower if constrained to a short building by tweaking the multiplier by lot size
+                        // Smaller buildings are difficult to make tall
+                        baseNum = 1.75f;
+                        levelBooster = 0.05f;
+                        residentialProperties = math.min((buildingPrefab.m_LotWidth + buildingPrefab.m_LotDepth) / 2, 6f);
+                        break;
+                        // No default
                 }
 
-                num = (baseNum + levelBooster * (level - 1)) * lotSize;
+                num = (baseNum + (levelBooster * level)) * lotSize * residentialProperties;
+                if (num > 1000)
+                {
+                    // Gently scale down the value for very large buildings
+                    num /= math.log10(num);
+                }
 
-                // TODO
-                string value = $"GetBuildingPropertyData {buildingPrefab.m_LotWidth}x{buildingPrefab.m_LotDepth} -> {__instance.m_ResidentialProperties} * {num}";
+                /*
+                string value = $"GetBuildingPropertyData {buildingPrefab.m_LotWidth}x{buildingPrefab.m_LotDepth} -> {num}";
                 if (!uniqueCalcString.Contains(value))
                 {
-                    //System.Console.WriteLine(value);
-                    //uniqueCalcString.Add(value);
+                    System.Console.WriteLine(value);
+                    uniqueCalcString.Add(value);
                 }
+                */
             }
 
-
             BuildingPropertyData result = default(BuildingPropertyData);
-            result.m_ResidentialProperties = (int)math.round(num * residentialProperties);
+            result.m_ResidentialProperties = (int)math.round(num);
             result.m_AllowedSold = EconomyUtils.GetResources(__instance.m_AllowedSold);
             result.m_AllowedManufactured = EconomyUtils.GetResources(__instance.m_AllowedManufactured);
             result.m_AllowedStored = EconomyUtils.GetResources(__instance.m_AllowedStored);
